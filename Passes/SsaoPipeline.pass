@@ -1,0 +1,475 @@
+{
+    "Type": "JsonSerialization",
+    "Version": 1,
+    "ClassName": "PassAsset",
+    "ClassData": {
+        "PassTemplate": {
+            "Name": "SsaoPipeline",
+            "PassClass": "ParentPass",
+            "Slots": [
+                {
+                    "Name": "SwapChainOutput",
+                    "SlotType": "InputOutput",
+                    "ScopeAttachmentUsage": "RenderTarget"
+                }
+            ],
+            "PassRequests": [
+                {
+                    "Name": "MorphTargetPass",
+                    "TemplateName": "MorphTargetPassTemplate"
+                },
+                {
+                    "Name": "SkinningPass",
+                    "TemplateName": "SkinningPassTemplate",
+                    "Connections": [
+                        {
+                            "LocalSlot": "SkinnedMeshOutputStream",
+                            "AttachmentRef": {
+                                "Pass": "MorphTargetPass",
+                                "Attachment": "MorphTargetDeltaOutput"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "RayTracingAccelerationStructurePass",
+                    "TemplateName": "RayTracingAccelerationStructurePassTemplate"
+                },
+                {
+                    "Name": "CascadedShadowmapsPass",
+                    "TemplateName": "CascadedShadowmapsTemplate",
+                    "PassData": {
+                        "$type": "RasterPassData",
+                        "DrawListTag": "shadow",
+                        "PipelineViewTag": "DirectionalLightView"
+                    },
+                    "Connections": [
+                        {
+                            "LocalSlot": "SkinnedMeshes",
+                            "AttachmentRef": {
+                                "Pass": "SkinningPass",
+                                "Attachment": "SkinnedMeshOutputStream"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "ProjectedShadowmapsPass",
+                    "TemplateName": "ProjectedShadowmapsTemplate",
+                    "PassData": {
+                        "$type": "RasterPassData",
+                        "DrawListTag": "shadow",
+                        "PipelineViewTag": "ProjectedShadowView"
+                    },
+                    "Connections": [
+                        {
+                            "LocalSlot": "SkinnedMeshes",
+                            "AttachmentRef": {
+                                "Pass": "SkinningPass",
+                                "Attachment": "SkinnedMeshOutputStream"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "EsmShadowmapsPassDirectional",
+                    "TemplateName": "EsmShadowmapsTemplate",
+                    "PassData": {
+                        "$type": "EsmShadowmapsPassData",
+                        "LightType": "directional"
+                    },
+                    "Connections": [
+                        {
+                            "LocalSlot": "DepthShadowmaps",
+                            "AttachmentRef": {
+                                "Pass": "CascadedShadowmapsPass",
+                                "Attachment": "Shadowmap"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "EsmShadowmapsPassProjected",
+                    "TemplateName": "EsmShadowmapsTemplate",
+                    "PassData": {
+                        "$type": "EsmShadowmapsPassData",
+                        "LightType": "projected"
+                    },
+                    "Connections": [
+                        {
+                            "LocalSlot": "DepthShadowmaps",
+                            "AttachmentRef": {
+                                "Pass": "ProjectedShadowmapsPass",
+                                "Attachment": "Shadowmap"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "DepthPass",
+                    "TemplateName": "DepthPassTemplate",
+                    "PassData": {
+                        "$type": "RasterPassData",
+                        "DrawListTag": "depth",
+                        "PipelineViewTag": "MainCamera"
+                    },
+                    "Connections": [
+                        {
+                            "LocalSlot": "SkinnedMeshes",
+                            "AttachmentRef": {
+                                "Pass": "SkinningPass",
+                                "Attachment": "SkinnedMeshOutputStream"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "LightCullingTilePreparePass",
+                    "TemplateName": "LightCullingTilePrepareMSAATemplate",
+                    "Connections": [
+                        {
+                            "LocalSlot": "Depth",
+                            "AttachmentRef": {
+                                "Pass": "DepthPass",
+                                "Attachment": "Output"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "LightCullingPass",
+                    "TemplateName": "LightCullingTemplate",
+                    "Connections": [
+                        {
+                            "LocalSlot": "TileLightData",
+                            "AttachmentRef": {
+                                "Pass": "LightCullingTilePreparePass",
+                                "Attachment": "TileLightData"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "LightCullingRemapPass",
+                    "TemplateName": "LightCullingRemapTemplate",
+                    "Connections": [
+                        {
+                            "LocalSlot": "TileLightData",
+                            "AttachmentRef": {
+                                "Pass": "LightCullingTilePreparePass",
+                                "Attachment": "TileLightData"
+                            }
+                        },
+                        {
+                            "LocalSlot": "LightCount",
+                            "AttachmentRef": {
+                                "Pass": "LightCullingPass",
+                                "Attachment": "LightCount"
+                            }
+                        },
+                        {
+                            "LocalSlot": "LightList",
+                            "AttachmentRef": {
+                                "Pass": "LightCullingPass",
+                                "Attachment": "LightList"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "ForwardPass",
+                    "TemplateName": "ForwardPassTemplate",
+                    "Connections": [
+                        {
+                            "LocalSlot": "DirectionalLightShadowmap",
+                            "AttachmentRef": {
+                                "Pass": "CascadedShadowmapsPass",
+                                "Attachment": "Shadowmap"
+                            }
+                        },
+                        {
+                            "LocalSlot": "ExponentialShadowmapDirectional",
+                            "AttachmentRef": {
+                                "Pass": "EsmShadowmapsPassDirectional",
+                                "Attachment": "EsmShadowmaps"
+                            }
+                        },
+                        {
+                            "LocalSlot": "ProjectedShadowmap",
+                            "AttachmentRef": {
+                                "Pass": "ProjectedShadowmapsPass",
+                                "Attachment": "Shadowmap"
+                            }
+                        },
+                        {
+                            "LocalSlot": "ExponentialShadowmapProjected",
+                            "AttachmentRef": {
+                                "Pass": "EsmShadowmapsPassProjected",
+                                "Attachment": "EsmShadowmaps"
+                            }
+                        },
+                        {
+                            "LocalSlot": "DepthStencilInputOutput",
+                            "AttachmentRef": {
+                                "Pass": "DepthPass",
+                                "Attachment": "Output"
+                            }
+                        },
+                        {
+                            "LocalSlot": "TileLightData",
+                            "AttachmentRef": {
+                                "Pass": "LightCullingTilePreparePass",
+                                "Attachment": "TileLightData"
+                            }
+                        },
+                        {
+                            "LocalSlot": "LightListRemapped",
+                            "AttachmentRef": {
+                                "Pass": "LightCullingRemapPass",
+                                "Attachment": "LightListRemapped"
+                            }
+                        }
+                    ],
+                    "PassData": {
+                        "$type": "RasterPassData",
+                        "DrawListTag": "forward",
+                        "PipelineViewTag": "MainCamera",
+                        "PassSrgShaderAsset": {
+                            "FilePath": "Shaders/ForwardPassSrg.shader"
+                        }
+                    }
+                },
+                {
+                    "Name": "RayTracingAmbientOcclusionPass",
+                    "TemplateName": "RayTracingAmbientOcclusionPassTemplate",
+                    "Connections": [
+                        {
+                            "LocalSlot": "InputDepth",
+                            "AttachmentRef": {
+                                "Pass": "ForwardPass",
+                                "Attachment": "DepthStencilInputOutput"
+                            }
+                        },
+                        {
+                            "LocalSlot": "WorldNormal",
+                            "AttachmentRef": {
+                                "Pass": "ForwardPass",
+                                "Attachment": "NormalOutput"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "DepthToLinearDepthPass",
+                    "TemplateName": "DepthToLinearTemplate",
+                    "Connections": [
+                        {
+                            "LocalSlot": "Input",
+                            "AttachmentRef": {
+                                "Pass": "DepthPass",
+                                "Attachment": "Output"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "Ssao",
+                    "TemplateName": "SsaoParentTemplate",
+                    "Connections": [
+                        {
+                            "LocalSlot": "LinearDepth",
+                            "AttachmentRef": {
+                                "Pass": "DepthToLinearDepthPass",
+                                "Attachment": "Output"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "DebugWhiteTexture",
+                    "TemplateName": "FullscreenOutputOnlyTemplate",
+                    "ImageAttachments": [
+                        {
+                            "Name": "OutputAttachment",
+                            "SizeSource": {
+                                "Source": {
+                                    "Pass": "Parent",
+                                    "Attachment": "SwapChainOutput"
+                                }
+                            },
+                            "FormatSource": {
+                                "Pass": "Parent",
+                                "Attachment": "SwapChainOutput"
+                            }
+                        }
+                    ],
+                    "Connections": [
+                        {
+                            "LocalSlot": "Output",
+                            "AttachmentRef": {
+                                "Pass": "This",
+                                "Attachment": "OutputAttachment"
+                            }
+                        }
+                    ],
+                    "PassData": {
+                        "$type": "FullscreenTrianglePassData",
+                        "ShaderDataMappings": {
+                            "ColorMappings": [
+                                {
+                                    "Name": "m_color",
+                                    "Value": [ 1.0, 1.0, 1.0, 1.0 ]
+                                }
+                            ]
+                        },
+                        "ShaderAsset": {
+                            "FilePath": "Shaders/PostProcessing/UniformColor.shader"
+                        }
+                    }
+                },
+                {
+                    "Name": "ModulateWithSsao",
+                    "TemplateName": "ModulateTextureTemplate",
+                    "Enabled": true,
+                    "Connections": [
+                        {
+                            "LocalSlot": "Input",
+                            "AttachmentRef": {
+                                "Pass": "Ssao",
+                                "Attachment": "Output"
+                            }
+                        },
+                        {
+                            "LocalSlot": "InputOutput",
+                            "AttachmentRef": {
+                                "Pass": "DebugWhiteTexture",
+                                "Attachment": "Output"
+                            }
+                        }
+                    ],
+                    "PassData": {
+                        "$type": "ComputePassData",
+                        "ShaderAsset": {
+                            "FilePath": "Shaders/PostProcessing/ModulateTexture.shader"
+                        },
+                        "Make Fullscreen Pass": true
+                    }
+                },
+                {
+                    "Name": "SelectorPass",
+                    "TemplateName": "SelectorPassTemplate",
+                    "Enabled": true,
+                    "Connections": [
+                        {
+                            "LocalSlot": "Input1",
+                            "AttachmentRef": {
+                                "Pass": "RayTracingAmbientOcclusionPass",
+                                "Attachment": "OutputAO"
+                            }
+                        },
+                        {
+                            "LocalSlot": "Input2",
+                            "AttachmentRef": {
+                                "Pass": "ModulateWithSsao",
+                                "Attachment": "InputOutput"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "DisplayMapperPass",
+                    "TemplateName": "DisplayMapperTemplate",
+                    "Enabled": true,
+                    "Connections": [
+                        {
+                            "LocalSlot": "Input",
+                            "AttachmentRef": {
+                                "Pass": "SelectorPass",
+                                "Attachment": "Output"
+                            }
+                        },
+                        {
+                            "LocalSlot": "SwapChainOutput",
+                            "AttachmentRef": {
+                                "Pass": "Parent",
+                                "Attachment": "SwapChainOutput"
+                            }
+                        }
+                    ],
+                    "PassData": {
+                        "$type": "DisplayMapperPassData",
+                        "DisplayMapperConfig": {
+                            "Name": "MainPipeline",
+                            "OperationType": "GammaSRGB",
+                            "LdrGradingLutEnabled": "False"
+                        }
+                    }
+                },
+                {
+                    "Name": "ImGuiPass",
+                    "TemplateName": "ImGuiPassTemplate",
+                    "Enabled": true,
+                    "Connections": [
+                        {
+                            "LocalSlot": "InputOutput",
+                            "AttachmentRef": {
+                                "Pass": "DisplayMapperPass",
+                                "Attachment": "Output"
+                            }
+                        }
+                    ],
+                    "PassData": {
+                        "$type": "ImGuiPassData",
+                        "IsDefaultImGui": true
+                    }
+                },		
+                {
+                    "Name": "2DPass",
+                    "TemplateName": "UIPassTemplate",
+                    "Enabled": true,
+                    "Connections": [
+                        {
+                            "LocalSlot": "InputOutput",
+                            "AttachmentRef": {
+                                "Pass": "ImGuiPass",
+                                "Attachment": "InputOutput"
+                            }
+                        },
+                        {
+                            "LocalSlot": "DepthInputOutput",
+                            "AttachmentRef": {
+                                "Pass": "DepthPass",
+                                "Attachment": "Output"
+                            }
+                        }
+                    ],
+                    "PassData": {
+                        "$type": "RasterPassData",
+                        "DrawListTag": "2dpass",
+                        "PipelineViewTag": "MainCamera"
+                    }
+                },
+                {
+                    "Name": "CopyToSwapChain",
+                    "TemplateName": "FullscreenCopyTemplate",
+                    "Connections": [
+                        {
+                            "LocalSlot": "Input",
+                            "AttachmentRef": {
+                                "Pass": "2DPass",
+                                "Attachment": "InputOutput"
+                            }
+                        },
+                        {
+                            "LocalSlot": "Output",
+                            "AttachmentRef": {
+                                "Pass": "Parent",
+                                "Attachment": "SwapChainOutput"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

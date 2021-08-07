@@ -1,0 +1,81 @@
+{
+    "Type": "JsonSerialization",
+    "Version": 1,
+    "ClassName": "AssetAliasesSourceData",
+    "ClassData": {
+        "AssetPaths": [
+            {
+                "Name": "ImGuiOnlyPipeline",
+                "Path": "Passes/ImGuiOnlyPipeline.pass"
+            },
+            {
+                "Name": "ImGuiNoInputPassTemplate",
+                "Path": "Passes/ImGuiNoInput.pass"
+            },
+            {
+                "Name": "ColorBlindPassTemplate",
+                "Path": "Passes/ColorblindnessSimulation.pass"
+            },
+            {
+                "Name": "ComplexPipeline",
+                "Path": "Passes/ComplexPipeline.pass"
+            },
+            {
+                "Name": "CheckerboardResolveColorTemplate",
+                "Path": "Passes/CheckerboardResolveColor.pass"
+            },
+            {
+                "Name": "CheckerboardResolveDepthTemplate",
+                "Path": "Passes/CheckerboardResolveDepth.pass"
+            },
+            {
+                "Name": "ForwardCheckerboardPassTemplate",
+                "Path": "Passes/ForwardCheckerboard.pass"
+            },
+            {
+                "Name": "DepthCheckerboardPassTemplate",
+                "Path": "Passes/DepthCheckerboard.pass"
+            },
+            {
+                "Name": "CheckerboardPipeline",
+                "Path": "Passes/CheckerboardPipeline.pass"
+            },
+            {
+                "Name": "MonochromeTemplate",
+                "Path": "Passes/Monochrome.pass"
+            },
+            {
+                "Name": "ColorInvertCS",
+                "Path": "Passes/ColorInvertCS.pass"
+            },
+            {
+                "Name": "LuxCoreTexturePassTemplate",
+                "Path": "Passes/LuxCoreTexture.pass"
+            },
+            {
+                "Name": "RenderTextureTemplate",
+                "Path": "Passes/RenderTexture.pass"
+            },
+            {
+                "Name": "RHISamplePassTemplate",
+                "Path": "Passes/RHISamplePass.pass"
+            },
+            {
+                "Name": "RHISamplePipelineTemplate",
+                "Path": "Passes/RHISamplePipeline.pass"
+            },
+            {
+                "Name": "SsaoPipeline",
+                "Path": "Passes/SsaoPipeline.pass"
+            },
+            {
+                "Name": "RayTracingAmbientOcclusionPassTemplate",
+                "Path": "Passes/RayTracingAmbientOcclusion.pass"
+            },
+            {
+                "Name": "SelectorPassTemplate",
+                "Path": "Passes/SelectorPass.pass"
+            }
+        ]
+    }
+}
