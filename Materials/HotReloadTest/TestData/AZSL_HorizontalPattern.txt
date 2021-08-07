@@ -1,0 +1,69 @@
+/*
+ * Copyright (c) Contributors to the Open 3D Engine Project. 
+ * For complete copyright and license terms please see the LICENSE at the root of this distribution.
+ *
+ * SPDX-License-Identifier: Apache-2.0 OR MIT*
+ */
+
+#include <viewsrg.srgi>
+#include <Atom/Features/PBR/ForwardPassSrg.azsli>
+#include <Atom/Features/PBR/DefaultObjectSrg.azsli>
+#include <Atom/RPI/ShaderResourceGroups/DefaultDrawSrg.azsli>
+
+option bool o_wavyLines = false;
+
+ShaderResourceGroup MaterialSrg : SRG_PerMaterial
+{
+    float4 m_colorA;
+    float4 m_colorB;
+}
+
+struct VertexInput
+{
+    float3 m_position : POSITION;
+};
+
+struct VertexOutput
+{
+    float4 m_position : SV_Position;
+    float3 m_worldPosition : TexCoord;
+};
+
+VertexOutput MainVS(VertexInput input)
+{
+    const float4x4 objectToWorldMatrix = ObjectSrg::GetWorldMatrix();
+
+    VertexOutput output;
+    float3 worldPosition = mul(objectToWorldMatrix, float4(input.m_position, 1)).xyz;
+    output.m_worldPosition = worldPosition;
+    output.m_position = mul(ViewSrg::m_viewProjectionMatrix, float4(worldPosition, 1.0));
+
+    return output;
+}
+
+struct PixelOutput
+{
+    float4 m_color : SV_Target0;
+};
+
+PixelOutput MainPS(VertexOutput input)
+{
+    PixelOutput output;
+
+    float scale = 10;
+    float stripeThickness = 0.3;
+    float stripeShift = 0.66;
+
+    float position = input.m_worldPosition.z;
+    if(o_wavyLines)
+    {
+        position += sin(input.m_worldPosition.x * 10) * 0.05;
+    }
+
+    float t = step(frac(position * scale + stripeShift), stripeThickness);
+
+    output.m_color = lerp(MaterialSrg::m_colorA, MaterialSrg::m_colorB, t);
+    output.m_color.a = 0.5;
+        
+    return output;
+}
